@@ -1,0 +1,392 @@
+// prisma/schema.prisma
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// ============================================
+// User Models
+// ============================================
+
+model User {
+  id            String   @id @default(cuid())
+  email         String   @unique
+  password      String
+  firstName     String
+  lastName      String
+  phone         String?
+  role          String   @default("CUSTOMER") // CUSTOMER, VENDOR, ADMIN, DELIVERY_AGENT
+  
+  // Location
+  address       String?
+  latitude      Float?
+  longitude     Float?
+  
+  // Account
+  isActive      Boolean  @default(true)
+  isVerified    Boolean  @default(false)
+  verifiedAt    DateTime?
+  
+  // Vendor specific
+  vendor        Vendor?
+  
+  // Delivery Agent specific
+  deliveryAgent DeliveryAgent?
+  
+  // Relations
+  orders        Order[]
+  reviews       Review[]
+  notifications Notification[]
+  
+  // Timestamps
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([email])
+  @@index([role])
+  @@index([latitude, longitude])
+}
+
+model Vendor {
+  id                String   @id @default(cuid())
+  userId            String   @unique
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  businessName      String
+  businessLicense   String
+  gst               String?
+  
+  isApproved        Boolean  @default(false)
+  approvedAt        DateTime?
+  
+  // Bank details for payouts
+  bankAccountNumber String?
+  bankIfsc          String?
+  
+  // Relations
+  shops             Shop[]
+  
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([userId])
+  @@index([isApproved])
+}
+
+model DeliveryAgent {
+  id                String   @id @default(cuid())
+  userId            String   @unique
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  licenseNumber     String   @unique
+  vehicleType       String   // BIKE, SCOOTER, CAR
+  vehicleNumber     String   @unique
+  
+  isActive          Boolean  @default(true)
+  currentLatitude   Float?
+  currentLongitude  Float?
+  
+  // Relations
+  deliveries        Delivery[]
+  orders            Order[]
+  
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([userId])
+  @@index([isActive])
+  @@index([currentLatitude, currentLongitude])
+}
+
+// ============================================
+// Shop Models
+// ============================================
+
+model Shop {
+  id                String   @id @default(cuid())
+  vendorId          String
+  vendor            Vendor   @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+  
+  name              String
+  description       String?
+  
+  // Location with PostGIS support
+  address           String
+  latitude          Float    @db.Real
+  longitude         Float    @db.Real
+  
+  // Contact
+  phone             String
+  email             String?
+  
+  // Operations
+  isOpen            Boolean  @default(true)
+  openingTime       String?
+  closingTime       String?
+  
+  // Rating
+  averageRating     Float    @default(0)
+  totalReviews      Int      @default(0)
+  
+  // Relations
+  products          Product[]
+  orders            Order[]
+  reviews           Review[]
+  
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([vendorId])
+  @@index([latitude, longitude])
+  @@index([isOpen])
+}
+
+// ============================================
+// Product Models
+// ============================================
+
+model Product {
+  id                String   @id @default(cuid())
+  shopId            String
+  shop              Shop     @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  
+  name              String
+  description       String?
+  category          String   // GROCERY, MEDICAL, ELECTRICAL, SWEETS, STATIONARY
+  
+  price             Float
+  discountPrice     Float?
+  
+  // Inventory
+  quantity          Int
+  sku               String   @unique
+  
+  // Media
+  imageUrl          String?
+  
+  // Status
+  isActive          Boolean  @default(true)
+  
+  // Rating
+  averageRating     Float    @default(0)
+  totalReviews      Int      @default(0)
+  
+  // Relations
+  orderItems        OrderItem[]
+  reviews           Review[]
+  
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([shopId])
+  @@index([category])
+  @@index([isActive])
+  @@index([createdAt])
+}
+
+// ============================================
+// Order Models
+// ============================================
+
+model Order {
+  id                String   @id @default(cuid())
+  userId            String
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  shopId            String
+  shop              Shop     @relation(fields: [shopId], references: [id], onDelete: SetNull)
+  
+  // Order details
+  status            String   @default("PENDING") // PENDING, CONFIRMED, PREPARING, READY, OUT_FOR_DELIVERY, DELIVERED, CANCELLED
+  orderNumber       String   @unique
+  
+  // Delivery
+  deliveryType      String   @default("HOME_DELIVERY") // HOME_DELIVERY, STORE_PICKUP
+  deliveryAddress   String?
+  deliveryLatitude  Float?
+  deliveryLongitude Float?
+  
+  // Delivery agent
+  deliveryAgentId   String?
+  deliveryAgent     DeliveryAgent? @relation(fields: [deliveryAgentId], references: [id], onDelete: SetNull)
+  delivery          Delivery?
+  
+  // Pricing
+  subtotal          Float
+  taxAmount         Float    @default(0)
+  deliveryCharge    Float    @default(0)
+  totalAmount       Float
+  
+  // Payment
+  paymentId         String?
+  paymentStatus     String   @default("PENDING")
+  paymentMethod     String?
+  
+  // Notes
+  notes             String?
+  
+  // Relations
+  items             OrderItem[]
+  payment           Payment?
+  
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  deliveredAt       DateTime?
+
+  @@index([userId])
+  @@index([shopId])
+  @@index([status])
+  @@index([createdAt])
+  @@index([deliveryAgentId])
+}
+
+model OrderItem {
+  id                String   @id @default(cuid())
+  orderId           String
+  order             Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId         String
+  product           Product  @relation(fields: [productId], references: [id], onDelete: SetNull)
+  
+  quantity          Int
+  price             Float    // Price at time of order
+  
+  createdAt         DateTime @default(now())
+
+  @@index([orderId])
+  @@index([productId])
+}
+
+// ============================================
+// Payment Models
+// ============================================
+
+model Payment {
+  id                String   @id @default(cuid())
+  orderId           String   @unique
+  order             Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  
+  razorpayOrderId   String?  @unique
+  razorpayPaymentId String?  @unique
+  
+  amount            Float
+  currency          String   @default("INR")
+  status            String   @default("PENDING") // PENDING, INITIATED, SUCCESS, FAILED, REFUNDED
+  method            String?
+  
+  // Verification
+  signature         String?
+  isVerified        Boolean  @default(false)
+  
+  // Refund
+  refundAmount      Float    @default(0)
+  refundedAt        DateTime?
+  
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([orderId])
+  @@index([status])
+}
+
+// ============================================
+// Delivery Models
+// ============================================
+
+model Delivery {
+  id                String   @id @default(cuid())
+  orderId           String   @unique
+  order             Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  deliveryAgentId   String
+  deliveryAgent     DeliveryAgent @relation(fields: [deliveryAgentId], references: [id], onDelete: SetNull)
+  
+  status            String   @default("PENDING") // PENDING, PICKED, OUT_FOR_DELIVERY, DELIVERED
+  
+  pickupLatitude    Float?
+  pickupLongitude   Float?
+  
+  currentLatitude   Float?
+  currentLongitude  Float?
+  
+  estimatedDeliveryTime DateTime?
+  actualDeliveryTime DateTime?
+  
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([orderId])
+  @@index([deliveryAgentId])
+  @@index([status])
+}
+
+// ============================================
+// Review Models
+// ============================================
+
+model Review {
+  id                String   @id @default(cuid())
+  userId            String
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  shopId            String?
+  shop              Shop?    @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  
+  productId         String?
+  product           Product? @relation(fields: [productId], references: [id], onDelete: Cascade)
+  
+  rating            Int      // 1-5
+  comment           String?
+  
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([userId])
+  @@index([shopId])
+  @@index([productId])
+}
+
+// ============================================
+// Notification Models
+// ============================================
+
+model Notification {
+  id                String   @id @default(cuid())
+  userId            String
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  type              String   // order_placed, order_confirmed, payment_received, etc
+  title             String
+  message           String
+  
+  isRead            Boolean  @default(false)
+  readAt            DateTime?
+  
+  relatedOrderId    String?
+  relatedUserId     String?
+  
+  createdAt         DateTime @default(now())
+
+  @@index([userId])
+  @@index([isRead])
+  @@index([createdAt])
+}
+
+// ============================================
+// Analytics Models
+// ============================================
+
+model UserEvent {
+  id                String   @id @default(cuid())
+  userId            String
+  
+  eventType         String   // view, click, purchase, etc
+  eventData         String   // JSON
+  
+  createdAt         DateTime @default(now())
+
+  @@index([userId])
+  @@index([eventType])
+  @@index([createdAt])
+}

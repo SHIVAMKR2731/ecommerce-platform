@@ -1,0 +1,306 @@
+version: '3.8'
+
+services:
+  # Database
+  postgres:
+    image: postgis/postgis:15-3.3
+    container_name: bazaarlink-postgres
+    environment:
+      POSTGRES_DB: bazaarlink
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend/database/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - bazaarlink-network
+
+  # Redis
+  redis:
+    image: redis:7-alpine
+    container_name: bazaarlink-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - bazaarlink-network
+
+  # RabbitMQ
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: bazaarlink-rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - bazaarlink-network
+
+  # Auth Service
+  auth-service:
+    build: ./backend/services/auth-service
+    container_name: bazaarlink-auth-service
+    environment:
+      - NODE_ENV=development
+      - PORT=3001
+      - DATABASE_URL=postgresql://postgres:password@postgres:5432/bazaarlink
+      - REDIS_URL=redis://redis:6379
+      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
+      - JWT_SECRET=your-super-secret-jwt-key-here
+      - REFRESH_TOKEN_SECRET=your-super-secret-refresh-token-key-here
+      - LOG_LEVEL=info
+    ports:
+      - "3001:3001"
+    depends_on:
+      - postgres
+      - redis
+      - rabbitmq
+    networks:
+      - bazaarlink-network
+    volumes:
+      - ./backend/services/auth-service:/app
+      - /app/node_modules
+
+  # User Service
+  user-service:
+    build: ./backend/services/user-service
+    container_name: bazaarlink-user-service
+    environment:
+      - NODE_ENV=development
+      - PORT=3002
+      - DATABASE_URL=postgresql://postgres:password@postgres:5432/bazaarlink
+      - REDIS_URL=redis://redis:6379
+      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
+      - JWT_SECRET=your-super-secret-jwt-key-here
+      - LOG_LEVEL=info
+    ports:
+      - "3002:3002"
+    depends_on:
+      - postgres
+      - redis
+      - rabbitmq
+    networks:
+      - bazaarlink-network
+    volumes:
+      - ./backend/services/user-service:/app
+      - /app/node_modules
+
+  # Shop Service
+  shop-service:
+    build: ./backend/services/shop-service
+    container_name: bazaarlink-shop-service
+    environment:
+      - NODE_ENV=development
+      - PORT=3003
+      - DATABASE_URL=postgresql://postgres:password@postgres:5432/bazaarlink
+      - REDIS_URL=redis://redis:6379
+      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
+      - JWT_SECRET=your-super-secret-jwt-key-here
+      - LOG_LEVEL=info
+    ports:
+      - "3003:3003"
+    depends_on:
+      - postgres
+      - redis
+      - rabbitmq
+    networks:
+      - bazaarlink-network
+    volumes:
+      - ./backend/services/shop-service:/app
+      - /app/node_modules
+
+  # Product Service
+  product-service:
+    build: ./backend/services/product-service
+    container_name: bazaarlink-product-service
+    environment:
+      - NODE_ENV=development
+      - PORT=3004
+      - DATABASE_URL=postgresql://postgres:password@postgres:5432/bazaarlink
+      - REDIS_URL=redis://redis:6379
+      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
+      - JWT_SECRET=your-super-secret-jwt-key-here
+      - LOG_LEVEL=info
+    ports:
+      - "3004:3004"
+    depends_on:
+      - postgres
+      - redis
+      - rabbitmq
+    networks:
+      - bazaarlink-network
+    volumes:
+      - ./backend/services/product-service:/app
+      - /app/node_modules
+
+  # Order Service
+  order-service:
+    build: ./backend/services/order-service
+    container_name: bazaarlink-order-service
+    environment:
+      - NODE_ENV=development
+      - PORT=3005
+      - DATABASE_URL=postgresql://postgres:password@postgres:5432/bazaarlink
+      - REDIS_URL=redis://redis:6379
+      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
+      - JWT_SECRET=your-super-secret-jwt-key-here
+      - LOG_LEVEL=info
+    ports:
+      - "3005:3005"
+    depends_on:
+      - postgres
+      - redis
+      - rabbitmq
+    networks:
+      - bazaarlink-network
+    volumes:
+      - ./backend/services/order-service:/app
+      - /app/node_modules
+
+  # Payment Service
+  payment-service:
+    build: ./backend/services/payment-service
+    container_name: bazaarlink-payment-service
+    environment:
+      - NODE_ENV=development
+      - PORT=3006
+      - DATABASE_URL=postgresql://postgres:password@postgres:5432/bazaarlink
+      - REDIS_URL=redis://redis:6379
+      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
+      - JWT_SECRET=your-super-secret-jwt-key-here
+      - RAZORPAY_KEY_ID=your-razorpay-key-id
+      - RAZORPAY_KEY_SECRET=your-razorpay-key-secret
+      - LOG_LEVEL=info
+    ports:
+      - "3006:3006"
+    depends_on:
+      - postgres
+      - redis
+      - rabbitmq
+    networks:
+      - bazaarlink-network
+    volumes:
+      - ./backend/services/payment-service:/app
+      - /app/node_modules
+
+  # Delivery Service
+  delivery-service:
+    build: ./backend/services/delivery-service
+    container_name: bazaarlink-delivery-service
+    environment:
+      - NODE_ENV=development
+      - PORT=3007
+      - DATABASE_URL=postgresql://postgres:password@postgres:5432/bazaarlink
+      - REDIS_URL=redis://redis:6379
+      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
+      - JWT_SECRET=your-super-secret-jwt-key-here
+      - LOG_LEVEL=info
+    ports:
+      - "3007:3007"
+    depends_on:
+      - postgres
+      - redis
+      - rabbitmq
+    networks:
+      - bazaarlink-network
+    volumes:
+      - ./backend/services/delivery-service:/app
+      - /app/node_modules
+
+  # Notification Service
+  notification-service:
+    build: ./backend/services/notification-service
+    container_name: bazaarlink-notification-service
+    environment:
+      - NODE_ENV=development
+      - PORT=3008
+      - DATABASE_URL=postgresql://postgres:password@postgres:5432/bazaarlink
+      - REDIS_URL=redis://redis:6379
+      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
+      - JWT_SECRET=your-super-secret-jwt-key-here
+      - LOG_LEVEL=info
+    ports:
+      - "3008:3008"
+    depends_on:
+      - postgres
+      - redis
+      - rabbitmq
+    networks:
+      - bazaarlink-network
+    volumes:
+      - ./backend/services/notification-service:/app
+      - /app/node_modules
+
+  # AI Recommendation Service
+  ai-service:
+    build: ./ai-service
+    container_name: bazaarlink-ai-service
+    environment:
+      - REDIS_URL=redis://redis:6379
+      - DATABASE_URL=postgresql://postgres:password@postgres:5432/bazaarlink
+    ports:
+      - "5000:5000"
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - bazaarlink-network
+    volumes:
+      - ./ai-service:/app
+
+  # Frontend (Next.js)
+  frontend:
+    build: ./frontend
+    container_name: bazaarlink-frontend
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost/api
+      - NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=your_google_maps_api_key
+      - NEXT_PUBLIC_RAZORPAY_KEY_ID=your_razorpay_key_id
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api-gateway
+    networks:
+      - bazaarlink-network
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+      - /app/.next
+
+  # API Gateway (Nginx)
+  api-gateway:
+    image: nginx:alpine
+    container_name: bazaarlink-api-gateway
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/conf.d:/etc/nginx/conf.d
+    depends_on:
+      - auth-service
+      - user-service
+      - shop-service
+      - product-service
+      - order-service
+      - payment-service
+      - delivery-service
+      - notification-service
+      - ai-service
+    networks:
+      - bazaarlink-network
+
+volumes:
+  postgres_data:
+  redis_data:
+  rabbitmq_data:
+
+networks:
+  bazaarlink-network:
+    driver: bridge
