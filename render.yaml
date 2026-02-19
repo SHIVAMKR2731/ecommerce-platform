@@ -58,7 +58,7 @@ services:
         value: production
       - key: PORT
         value: 10000
-      - key: DATABASE_URL
+      - key: dpg-d6bepvqli9vc73dfume0-a 
         fromDatabase:
           name: bazaarlink-db
           property: connectionString
@@ -80,7 +80,7 @@ services:
         value: production
       - key: PORT
         value: 10000
-      - key: DATABASE_URL
+      - key: dpg-d6bepvqli9vc73dfume0-a 
         fromDatabase:
           name: bazaarlink-db
           property: connectionString
@@ -124,7 +124,7 @@ services:
         value: production
       - key: PORT
         value: 10000
-      - key: DATABASE_URL
+      - key: dpg-d6bepvqli9vc73dfume0-a 
         fromDatabase:
           name: bazaarlink-db
           property: connectionString
@@ -150,7 +150,7 @@ services:
         value: production
       - key: PORT
         value: 10000
-      - key: DATABASE_URL
+      - key: dpg-d6bepvqli9vc73dfume0-a 
         fromDatabase:
           name: bazaarlink-db
           property: connectionString
@@ -172,7 +172,7 @@ services:
         value: production
       - key: PORT
         value: 10000
-      - key: DATABASE_URL
+      - key: dpg-d6bepvqli9vc73dfume0-a 
         fromDatabase:
           name: bazaarlink-db
           property: connectionString
@@ -192,7 +192,7 @@ services:
       - key: NEXT_PUBLIC_API_URL
         value: https://your-api-gateway-url.onrender.com/api
       - key: NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
-        value: your-google-maps-api-key
+        value: AIzaSyDThzFyzuC1MfadCx4ANrPu6FVivp_tnSY
       - key: NEXT_PUBLIC_RAZORPAY_KEY_ID
         value: your-razorpay-key-id
 
