@@ -1,0 +1,203 @@
+services:
+  # Auth Service
+  - type: web
+    name: bazaarlink-auth-service
+    env: node
+    plan: free
+    buildCommand: cd backend/services/auth-service && npm install && npm run build
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: DATABASE_URL
+        fromDatabase:
+          name: bazaarlink-db
+          property: connectionString
+      - key: JWT_SECRET
+        value: your-super-secret-jwt-key-change-this
+      - key: REFRESH_TOKEN_SECRET
+        value: your-super-secret-refresh-token-change-this
+      - key: LOG_LEVEL
+        value: info
+
+  # User Service
+  - type: web
+    name: bazaarlink-user-service
+    env: node
+    plan: free
+    buildCommand: cd backend/services/user-service && npm install && npm run build
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: DATABASE_URL
+        fromDatabase:
+          name: bazaarlink-db
+          property: connectionString
+      - key: JWT_SECRET
+        value: your-super-secret-jwt-key-change-this
+      - key: LOG_LEVEL
+        value: info
+
+  # Product Service
+  - type: web
+    name: bazaarlink-product-service
+    env: node
+    plan: free
+    buildCommand: cd backend/services/product-service && npm install && npm run build
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: DATABASE_URL
+        fromDatabase:
+          name: bazaarlink-db
+          property: connectionString
+      - key: JWT_SECRET
+        value: your-super-secret-jwt-key-change-this
+      - key: LOG_LEVEL
+        value: info
+
+  # Shop Service
+  - type: web
+    name: bazaarlink-shop-service
+    env: node
+    plan: free
+    buildCommand: cd backend/services/shop-service && npm install && npm run build
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: DATABASE_URL
+        fromDatabase:
+          name: bazaarlink-db
+          property: connectionString
+      - key: JWT_SECRET
+        value: your-super-secret-jwt-key-change-this
+      - key: LOG_LEVEL
+        value: info
+
+  # Order Service
+  - type: web
+    name: bazaarlink-order-service
+    env: node
+    plan: free
+    buildCommand: cd backend/services/order-service && npm install && npm run build
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: DATABASE_URL
+        fromDatabase:
+          name: bazaarlink-db
+          property: connectionString
+      - key: JWT_SECRET
+        value: your-super-secret-jwt-key-change-this
+      - key: LOG_LEVEL
+        value: info
+
+  # Payment Service
+  - type: web
+    name: bazaarlink-payment-service
+    env: node
+    plan: free
+    buildCommand: cd backend/services/payment-service && npm install && npm run build
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: DATABASE_URL
+        fromDatabase:
+          name: bazaarlink-db
+          property: connectionString
+      - key: JWT_SECRET
+        value: your-super-secret-jwt-key-change-this
+      - key: RAZORPAY_KEY_ID
+        value: your-razorpay-key-id
+      - key: RAZORPAY_KEY_SECRET
+        value: your-razorpay-key-secret
+      - key: LOG_LEVEL
+        value: info
+
+  # Delivery Service
+  - type: web
+    name: bazaarlink-delivery-service
+    env: node
+    plan: free
+    buildCommand: cd backend/services/delivery-service && npm install && npm run build
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: DATABASE_URL
+        fromDatabase:
+          name: bazaarlink-db
+          property: connectionString
+      - key: JWT_SECRET
+        value: your-super-secret-jwt-key-change-this
+      - key: LOG_LEVEL
+        value: info
+
+  # Notification Service
+  - type: web
+    name: bazaarlink-notification-service
+    env: node
+    plan: free
+    buildCommand: cd backend/services/notification-service && npm install && npm run build
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: DATABASE_URL
+        fromDatabase:
+          name: bazaarlink-db
+          property: connectionString
+      - key: JWT_SECRET
+        value: your-super-secret-jwt-key-change-this
+      - key: LOG_LEVEL
+        value: info
+
+  # Frontend (Next.js)
+  - type: web
+    name: bazaarlink-frontend
+    env: node
+    plan: free
+    buildCommand: cd frontend && npm install && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NEXT_PUBLIC_API_URL
+        value: https://your-api-gateway-url.onrender.com/api
+      - key: NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
+        value: your-google-maps-api-key
+      - key: NEXT_PUBLIC_RAZORPAY_KEY_ID
+        value: your-razorpay-key-id
+
+databases:
+  - name: bazaarlink-db
+    plan: free
+    ipAllowList: []
+    postgresMajorVersion: 15
