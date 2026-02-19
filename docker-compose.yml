@@ -14,6 +14,11 @@ services:
       - ./backend/database/init.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
       - bazaarlink-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   # Redis
   redis:
@@ -25,6 +30,11 @@ services:
       - redis_data:/data
     networks:
       - bazaarlink-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   # RabbitMQ
   rabbitmq:
@@ -40,6 +50,11 @@ services:
       - rabbitmq_data:/var/lib/rabbitmq
     networks:
       - bazaarlink-network
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   # Auth Service
   auth-service:
@@ -57,9 +72,12 @@ services:
     ports:
       - "3001:3001"
     depends_on:
-      - postgres
-      - redis
-      - rabbitmq
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
     networks:
       - bazaarlink-network
     volumes:
@@ -81,9 +99,12 @@ services:
     ports:
       - "3002:3002"
     depends_on:
-      - postgres
-      - redis
-      - rabbitmq
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
     networks:
       - bazaarlink-network
     volumes:
@@ -105,9 +126,12 @@ services:
     ports:
       - "3003:3003"
     depends_on:
-      - postgres
-      - redis
-      - rabbitmq
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
     networks:
       - bazaarlink-network
     volumes:
@@ -129,9 +153,12 @@ services:
     ports:
       - "3004:3004"
     depends_on:
-      - postgres
-      - redis
-      - rabbitmq
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
     networks:
       - bazaarlink-network
     volumes:
@@ -153,9 +180,12 @@ services:
     ports:
       - "3005:3005"
     depends_on:
-      - postgres
-      - redis
-      - rabbitmq
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
     networks:
       - bazaarlink-network
     volumes:
@@ -179,9 +209,12 @@ services:
     ports:
       - "3006:3006"
     depends_on:
-      - postgres
-      - redis
-      - rabbitmq
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
     networks:
       - bazaarlink-network
     volumes:
@@ -203,9 +236,12 @@ services:
     ports:
       - "3007:3007"
     depends_on:
-      - postgres
-      - redis
-      - rabbitmq
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
     networks:
       - bazaarlink-network
     volumes:
@@ -227,9 +263,12 @@ services:
     ports:
       - "3008:3008"
     depends_on:
-      - postgres
-      - redis
-      - rabbitmq
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
     networks:
       - bazaarlink-network
     volumes:
@@ -246,8 +285,10 @@ services:
     ports:
       - "5000:5000"
     depends_on:
-      - postgres
-      - redis
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     networks:
       - bazaarlink-network
     volumes:
